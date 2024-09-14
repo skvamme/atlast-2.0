@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #ifdef ALIGNMENT
 #include <memory.h>
@@ -46,6 +47,7 @@
 #define EVALUATE                      /* The EVALUATE primitive */
 #define FILEIO                        /* File I/O primitives */
 #define MATH                          /* Math functions */
+#define SERIAL			/* Serial port functions */
 #define MEMMESSAGE                    /* Print message for stack/heap errors */
 #define PROLOGUE                      /* Prologue processing and auto-init */
 #define REAL                          /* Floating point numbers */
@@ -60,12 +62,32 @@
 #endif /* NOMEMCHECK */
 #endif /* !INDIVIDUALLY */
 
-
+ 
 #include "atldef.h"
 
 #ifdef MATH
 #include <math.h>
 #endif
+
+#ifdef SERIAL
+#include <termios.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+
+#define MAXLENGTH 225
+
+typedef struct {
+  int rate;
+  speed_t speed;
+} bit_rate;
+
+#define TtyOpen(TTY) ((TTY) != -1)
+
+int            ttyfd = -1;           /* terminal file descriptor */
+#endif /* SERIAL */
 
 /* LINTLIBRARY */
 
@@ -271,6 +293,148 @@ static void ucase(c)
         c++;
     }
 }
+
+#ifdef SERIAL
+/**********************************************************************
+ * Name: set_raw_tty_mode
+ *
+ * Desc: Configures the given tty for raw-mode.
+ */
+
+void set_raw_tty_mode(int fd)
+{
+  struct termios ttymodes;
+
+  /* Get ttymodes */
+
+  if (tcgetattr(fd,&ttymodes) < 0) 
+    {
+      perror("tcgetattr");
+      exit(1);
+    }
+
+  /* Configure for raw mode (see man termios) */
+  ttymodes.c_cc[VMIN] = 1;         /* at least one character */
+  ttymodes.c_cc[VTIME] = 0;        /* do not wait to fill buffer */
+
+  ttymodes.c_iflag &= ~(ICRNL |    /* disable CR-to-NL mapping */
+			INLCR |    /* disable NL-to-CR mapping */
+			IGNCR |    /* disable ignore CR */
+			ISTRIP |   /* disable stripping of eighth bit */
+			IXON |     /* disable output flow control */
+			BRKINT |   /* disable generate SIGINT on brk */
+			IGNPAR |
+			PARMRK |
+			IGNBRK |
+			INPCK);    /* disable input parity detection */
+
+  ttymodes.c_lflag &= ~(ICANON |   /* enable non-canonical mode */
+			ECHO |     /* disable character echo */
+			ECHOE |    /* disable visual erase */
+			ECHOK |    /* disable echo newline after kill */
+			ECHOKE |   /* disable visual kill with bs-sp-bs */
+			ECHONL |   /* disable echo nl when echo off */
+			ISIG | 	   /* disable tty-generated signals */
+			IEXTEN);   /* disable extended input processing */
+  
+  ttymodes.c_cflag |= CS8;         /* enable eight bit chars */
+  ttymodes.c_cflag &= ~PARENB;     /* disable input parity check */
+  ttymodes.c_cflag |= CREAD;       /* enable receiver */
+
+  ttymodes.c_oflag &= ~OPOST;      /* disable output processing */
+
+  /* roland */
+  ttymodes.c_cflag |= CLOCAL;
+
+
+
+  /* Apply changes */
+
+  if (tcsetattr(fd, TCSAFLUSH, &ttymodes) < 0)
+    {
+      perror("tcsetattr");
+      exit(1);
+    }
+}
+
+static void set_tty_speed(int fd, speed_t new_ispeed, speed_t new_ospeed)
+{
+  struct termios ttymodes;
+
+  /* Get ttymodes */
+
+  if (tcgetattr(fd,&ttymodes) < 0) 
+    {
+      perror("tcgetattr");
+      exit(1);
+    }
+
+  if (cfsetispeed(&ttymodes,new_ispeed) < 0)
+    {
+      perror("cfsetispeed");
+      exit(1);
+    }
+
+  if (cfsetospeed(&ttymodes,new_ospeed) < 0)
+    {
+      perror("cfsetospeed");
+      exit(1);
+    }
+
+  /* Apply changes */
+
+  if (tcsetattr(fd, TCSAFLUSH, &ttymodes) < 0)
+    {
+      perror("tcsetattr");
+      exit(1);
+    }
+}
+
+
+static int write_to_tty(int ttyfd,unsigned char buf[], int buffsize)
+{
+	int result;
+	
+	result = write(ttyfd,buf,buffsize);
+	return result;
+}
+	
+static int opentty(char *ttyname, speed_t in_speed)
+{
+      ttyfd = open(ttyname,O_RDWR );
+      if (!TtyOpen(ttyfd))
+	{
+	  fprintf(stderr,"Cannot open terminal %s for read and write\n",
+		  ttyname);
+	  exit(1);
+	}
+	set_raw_tty_mode(ttyfd);
+	set_tty_speed(ttyfd,in_speed,in_speed);
+	return ttyfd;
+}
+
+/******************************
+* Data from TTY
+*/
+static int readtty(int ttyfd, unsigned char * buf)
+{
+	fd_set readfds;
+	int nr_read = 0;
+	
+	if (TtyOpen(ttyfd))  
+	  {
+	    FD_CLR(ttyfd,&readfds);
+
+	    nr_read = read(ttyfd,buf,MAXLENGTH);
+	    if (nr_read <= 0)
+	      {
+		fprintf(stderr,"problem reading from tty\n");
+		exit(1);
+	      }	      
+	  }
+	  return nr_read;
+  }
+#endif
 
 /*  TOKEN  --  Scan a token and return its type.  */
 
@@ -2678,6 +2842,38 @@ prim P_fwdresolve()                   /* Emit forward jump offset */
 
 #endif /* COMPILERW */
 
+#ifdef SERIAL
+prim P_serial_open() // string integer -- ttyfd   /dev/tty* and baud
+{
+	int result;
+	Sl(2);
+	result = (stackitem) opentty((char *) S1, S0);
+	Pop;
+	S0 = result;
+}
+
+prim P_serial_write() // string length ttyfd -- int_num_write // String to write to ttyport
+{
+	Sl(3);
+	int result;
+	
+	result = write_to_tty(S0,(unsigned char *) S2, S1);
+	Pop;
+	Pop;
+	S0 = (stackitem) result;
+}
+
+prim P_serial_read() //  buffer ttyfd -- int_num_read
+{	
+	int result;
+	Sl(2);
+	result = readtty(S0, (unsigned char *) S1);
+	Pop;
+	S0 = (stackitem) result;
+}
+
+#endif
+
 /*  Table of primitive words  */
 
 static struct primfcn primt[] = {
@@ -2949,6 +3145,11 @@ static struct primfcn primt[] = {
     {"0FSEEK", P_fseek},
     {"0FLOAD", P_fload},
 #endif /* FILEIO */
+#ifdef SERIAL
+	{"0SERIALOPEN", P_serial_open},
+	{"0SERIALWRITE", P_serial_write},
+	{"0SERIALREAD", P_serial_read},
+#endif /* SERIAL */
 
 #ifdef EVALUATE
     {"0EVALUATE", P_evaluate},

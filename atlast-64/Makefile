@@ -3,9 +3,9 @@
 
 VERSION = 2.0
 
-COPTIONS = -g -Wall
+COPTIONS = -g -Wall -Wno-deprecated-non-prototype
 #COPTIONS = -O3 -Wall
-CC = gcc
+CC = cc
 
 LIBRARIES = -lm
 
