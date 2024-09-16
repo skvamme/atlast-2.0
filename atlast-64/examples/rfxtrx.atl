@@ -1,0 +1,55 @@
+\ RFXTRX-commands test. Read more about the RFXTRX transceiver here:
+\ http://www.rfxcom.com/RFXtrx433E-USB-43392MHz-Transceiver/en
+\ Run, as Superuser, RXTEMP
+
+255 string buf
+
+"/dev/ttyU0" 38400 serialopen constant ttyfd
+
+create rxreset 13 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, c=
+
+create rxstatus 13 c, 0 c, 0 c, 1 c, 2 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, c=
+
+\ AC, Fineoffset/Viking and Oregon Scientific
+create rxmode 13 c, 0 c, 0 c, 0 c, 3 c, 83 c, 28 c, 4 c, 0 c, 36 c, 0 c, 0 c, 0 c, 0 c, c=
+
+\ This is the default mode: X10, ARC, AC and Oregon Scientific
+create rxdefault 13 c, 0 c, 0 c, 0 c, 3 c, 83 c, 28 c, 0 c, 0 c, 39 c, 0 c, 0 c, 0 c, 0 c, c=
+
+\ This mode listens to all messages
+create rxunencoded 13 c, 128 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, c=
+
+\ Lightning2
+create rxon 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 1 c, 0 c, 0 c, c=
+create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c, c=
+
+\ fetch 2 bytes from a buffer and compose a 16 bit integer
+\ buf lsb msb -- integer
+: 2byteint rot dup 3 roll + c@ 8 shift -rot + c@ or ;
+
+\ buf -- count
+: read ttyfd serialread ;
+
+\ send a buffer over tty. buffer length is in the first byte
+\ buf -- count
+: rxsend dup c@ 1+ ttyfd serialwrite ;
+
+\ Get temperature reading in decideg from a Message 82 temperature&humidity
+\ To break this loop, type Ctrl C and wait until next recieve.
+: rxtemp begin buf read 11 = if buf 6 7 2byteint 10 / . cr then flush again ;
+
+: @type buf read drop
+	buf c@ . buf 1+ c@ . buf 2 + c@ . buf 3 + c@ . buf 4 + c@ . buf 5 + c@ . 
+	buf 6 + c@ . buf 7 + c@ . buf 8 + c@ . buf 9 + c@ . buf 10 + c@ . 
+	cr flush ;
+
+\ Turn on and off a NEXA wall plug. Pair the plug by inserting it in the outlet
+\ and type ON several times when the led flashes.
+: on rxon rxsend . ;
+: off rxoff rxsend . ;
+
+\ Send a reset to rfxtrx, wait 1 sec and send a command to tell rfxtrx which
+\ devices you want to listen to. Then run @type to listen for messages.
+\ Instead of @type you can run rxtemp to get temperature readings.
+: example rxreset rxsend drop 1 longsleep rxmode rxsend drop @type ;
+
