@@ -739,6 +739,20 @@ static Boolean kbquit()
 }
 #endif /* Keyhit */
 
+prim P_sleep() // microsec ---
+{ 
+  Sl(1);
+  usleep(S0);
+  Pop;
+}
+
+prim P_longsleep() // sec ---
+{ 
+  Sl(1);
+  sleep(S0);
+  Pop;
+}
+
 /*  Primitive word definitions.  */
 
 #ifdef NOMEMCHECK
@@ -3061,6 +3075,8 @@ static struct primfcn primt[] = {
     {"0QUIT", P_quit},
     {"0ABORT", P_abort},
     {"1ABORT\"", P_abortq},
+    {"0SLEEP", P_sleep},
+    {"0LONGSLEEP", P_longsleep},
 
 #ifdef SYSTEM
     {"0SYSTEM", P_system},
