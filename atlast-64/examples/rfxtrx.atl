@@ -36,8 +36,8 @@ create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c,
 
 \ Get temperature reading in decideg from a Message 82 temperature&humidity
 \ To break this loop, type Ctrl C and wait until next recieve.
-: rxtemp begin buf read 11 = if buf 6 7 2byteint 10 / . cr buf 8 9 2byteint . cr 
-  then again ;
+: rxtemp begin buf read 11 = if buf 6 7 2byteint 10 / . "deg" type cr 
+  buf 8 + c@ . "hum" type cr cr then again ;
 
 : @type buf read drop
 	buf c@ . buf 1+ c@ . buf 2 + c@ . buf 3 + c@ . buf 4 + c@ . buf 5 + c@ . 
