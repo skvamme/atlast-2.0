@@ -5,6 +5,10 @@ VERSION = 2.0
 
 COPTIONS = -g -Wall -Wno-deprecated-non-prototype
 #COPTIONS = -O3 -Wall
+
+# For linux
+# CC = gcc
+# For freeBSD and other UNIX
 CC = cc
 
 LIBRARIES = -lm
