@@ -1,0 +1,8 @@
+\ Example code for words generating a random number
+\ Using SRANDOM MAXRANDOM TIME and EMIT. There is also a word RANDOM.
+\
+\ TIME leaves julian time on the stack (number of seconds since 19700101).
+\ Use it as seed for SRANDOM and call MAXRANDOM with 127 on the stack to get random
+\ numbers from 0 to 127. EMIT then prints the number as a character.
+
+: TEST TIME SRANDOM 127 MAXRANDOM EMIT CR ;

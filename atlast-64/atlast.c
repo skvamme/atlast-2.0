@@ -1595,6 +1595,39 @@ prim P_tan()                          /* Tangent */
 {
     Mathfunc(tan);
 }
+
+prim P_srandom()			/* Random seed,  int -- */
+{
+	Sl(1);
+	srandom(S0);
+	Pop;
+}
+
+prim P_random()			/* Random number,  -- int */
+{
+	stackitem t;
+	
+	So(1);
+	t = random(),
+	Push = t;
+}
+
+prim P_maxrandom()        /* Random between 0 and max, intmax -- int  */
+{
+  Sl(1);
+  unsigned long nb = (unsigned long) S0 + 1;
+  unsigned long nr = (unsigned long) RAND_MAX + 1;
+  unsigned long bs = nr / nb;
+  unsigned long rest   = nr % nb;
+  long x;
+
+  do {
+    x = random();
+  } while (nr - rest <= (unsigned long)x);
+
+  S0 = x/bs;
+}
+
 #undef Mathfunc
 #endif /* MATH */
 #endif /* REAL */
@@ -1607,6 +1640,13 @@ prim P_dot()                          /* Print top of stack, pop it */
 {
     Sl(1);
     V printf(base == 16 ? "%lX" : "%ld ", S0);
+    Pop;
+}
+
+prim P_emit()                         /* Print integer on top of stack as character */
+{
+    Sl(1);
+    V printf("%c", (int)S0);
     Pop;
 }
 
@@ -2728,6 +2768,13 @@ prim P_system()
     Hpc(S0);
     S0 = system((char *) S0);
 }
+
+prim P_juliantime() /* seconds since 1970-01-01 */
+{
+	So(1);
+    Push = (stackitem) time(NULL);
+}
+
 #endif /* SYSTEM */
 
 #ifdef TRACE
@@ -3031,6 +3078,9 @@ static struct primfcn primt[] = {
     {"0SIN", P_sin},
     {"0SQRT", P_sqrt},
     {"0TAN", P_tan},
+    {"0SRANDOM", P_srandom},
+    {"0RANDOM", P_random},
+    {"0MAXRANDOM", P_maxrandom},
 #ifdef ANSIFLOAT
     {"0FACOS", P_acos},
     {"0FASIN", P_asin},
@@ -3080,6 +3130,7 @@ static struct primfcn primt[] = {
 
 #ifdef SYSTEM
     {"0SYSTEM", P_system},
+    {"0TIME", P_juliantime},
 #endif
 #ifdef TRACE
     {"0TRACE", P_trace},
@@ -3141,6 +3192,7 @@ static struct primfcn primt[] = {
     {"0.S", P_dots},
     {"1.\"", P_dotquote},
     {"1.(", P_dotparen},
+    {"0EMIT", P_emit},
     {"0TYPE", P_type},
     {"0WORDS", P_words},
 #endif /* CONIO */

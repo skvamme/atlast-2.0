@@ -1,5 +1,6 @@
-\ RFXTRX-commands test. Read more about the RFXTRX transceiver here:
-\ http://www.rfxcom.com/RFXtrx433E-USB-43392MHz-Transceiver/en
+\ Serial port words test. SERIALOPEN SERIALREAD and SERIALWRITE
+\ using a USB-connected Home Automation device. Read more about the RFXTRX 
+\ transceiver here: http://www.rfxcom.com/RFXtrx433E-USB-43392MHz-Transceiver/en
 \ Run, as Superuser, the FORTH word EXAMPLE
 
 255 string buf
