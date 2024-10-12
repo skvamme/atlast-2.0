@@ -7,6 +7,8 @@ This verion of ATLAST is standard ATLAST with the exception of me added the foll
 * SERIALOPEN
 * SERIALREAD
 * SERIALWRITE
+* SLEEP
+* LONGSLEEP
 
 # ATLAST — Embedded Threaded Language Toolkit
 
