@@ -1,14 +1,14 @@
 This version of ATLAST is standard ATLAST with the exception of me added the following words to atlast-64:
-* EMIT
-* TIME
-* SRANDOM
-* RANDOM
-* MAXRANDOM
-* SERIALOPEN
-* SERIALREAD
-* SERIALWRITE
-* SLEEP
-* LONGSLEEP
+* EMIT (ASCII int -- ) print character
+* TIME ( -- int) Number of seconds since 1970-01-10
+* SRANDOM (int -- ) Random seed
+* RANDOM ( -- int ) Random number
+* MAXRANDOM (maxint -- int) Integer up to maxint
+* SERIALOPEN ("device" speed -- ttyfd)
+* SERIALREAD see example rfxtrx.atl
+* SERIALWRITE see example rfxtrx.atl
+* SLEEP (microsec -- )
+* LONGSLEEP (sec -- )
 
 # ATLAST — Embedded Threaded Language Toolkit
 
