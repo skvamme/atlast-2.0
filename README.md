@@ -1,4 +1,4 @@
-This verion of ATLAST is standard ATLAST with the exception of me added the following words:
+This version of ATLAST is standard ATLAST with the exception of me added the following words:
 * EMIT
 * TIME
 * SRANDOM
