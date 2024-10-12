@@ -1,3 +1,13 @@
+This verion of ATLAST is standard ATLAST with the exception of me added the following words:
+* EMIT
+* TIME
+* SRANDOM
+* RANDOM
+* MAXRANDOM
+* SERIALOPEN
+* SERIALREAD
+* SERIALWRITE
+
 # ATLAST — Embedded Threaded Language Toolkit
 
 Atlast is an attempt to make software component technology and open
