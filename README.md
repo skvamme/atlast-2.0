@@ -1,7 +1,7 @@
 This version of ATLAST is standard ATLAST with the exception of the following words added to atlast-64:
 * EMIT (ASCII_int -- ) print character
 * TIME ( -- int) Number of seconds since 1970-01-01
-* SRANDOM (int -- ) Random seed
+* SRANDOM (int -- ) Random seed See example random.atl
 * RANDOM ( -- int ) Random number
 * MAXRANDOM (maxint -- int) Integer up to maxint
 * SERIALOPEN ("device" speed -- ttyfd)
