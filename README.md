@@ -1,4 +1,4 @@
-This version of ATLAST is standard ATLAST with the exception of me added the following words to atlast-64:
+This version of ATLAST is standard ATLAST with the exception of the following words added to atlast-64:
 * EMIT (ASCII_int -- ) print character
 * TIME ( -- int) Number of seconds since 1970-01-01
 * SRANDOM (int -- ) Random seed
