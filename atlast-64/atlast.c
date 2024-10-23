@@ -729,9 +729,9 @@ static Boolean kbquit()
 {
     int key;
 
-    if ((key = Keyhit()) != 0) {
+    if ((key = kbhit()) != 0) {
         V printf("\nPress RETURN to stop, any other key to continue: ");
-        while ((key = Keyhit()) == 0) ;
+        while ((key = kbhit()) == 0) ;
         if (key == '\r' || (key == '\n'))
             return True;
     }
@@ -1643,6 +1643,15 @@ prim P_dot()                          /* Print top of stack, pop it */
     Pop;
 }
 
+prim P_dotx()                       /* Print top of stack in HEX format */
+{
+	Sl(1);
+	base = 16;
+	V printf("0x");
+	P_dot();
+	base = 10;
+}
+
 prim P_emit()                         /* Print integer on top of stack as character */
 {
     Sl(1);
@@ -1656,6 +1665,15 @@ prim P_question()                     /* Print value at address */
     Hpc(S0);
     V printf(base == 16 ? "%lX" : "%ld ", *((stackitem *) S0));
     Pop;
+}
+
+prim P_questionx()                 /* Print value at address in HEX format */
+{
+	Sl(1);
+	base = 16;
+	V printf("0x");
+	P_question();
+	base = 10;
 }
 
 prim P_cr()                           /* Carriage return */
@@ -3187,7 +3205,9 @@ static struct primfcn primt[] = {
 
 #ifdef CONIO
     {"0.", P_dot},
+    {"0.X", P_dotx},
     {"0?", P_question},
+    {"0?X", P_questionx},
     {"0CR", P_cr},
     {"0.S", P_dots},
     {"1.\"", P_dotquote},
