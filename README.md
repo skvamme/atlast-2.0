@@ -9,7 +9,7 @@ This version of ATLAST is standard ATLAST with the exception of the following wo
 * SERIALWRITE see example rfxtrx.atl
 * SLEEP (microsec -- )
 * LONGSLEEP (sec -- )
-* .X ( -- ) Print top of stack in HEX format and pop
+* .X (n -- ) Print top of stack in HEX format and pop
 * ?X (addr -- ) Print value at addr in HEX format
 
 # ATLAST — Embedded Threaded Language Toolkit
