@@ -1,7 +1,7 @@
-\ Serial port words test. SERIALOPEN SERIALREAD and SERIALWRITE
+\ Serial port words example. SERIALOPEN SERIALREAD and SERIALWRITE
 \ using a USB-connected Home Automation device RFXTRX transceiver. 
 \ http://www.rfxcom.com/RFXtrx433E-USB-43392MHz-Transceiver/en
-\ Run (as Superuser) the word EXAMPLE
+\ Run ATLAST (as Superuser) and type the word EXAMPLE
 
 255 string buf
 variable id
@@ -25,7 +25,7 @@ create rxunencoded 13 c, 128 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c, 0 c
 create rxon 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 1 c, 0 c, 0 c, c=
 create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c, c=
 
-\ fetch 2 bytes from a buffer and compose a 16 bit integer
+\ Fetch 2 bytes from a buffer and compose a 16 bit integer
 \ buf lsb msb -- integer
 : 2byteint rot dup 3 roll + c@ 8 shift -rot + c@ or ;
 
@@ -38,7 +38,7 @@ create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c,
 
 \ Get temperature reading in decideg from a Message 82 temperature&humidity
 \ To break this loop, type Ctrl C and wait until next recieve.
-: rxtemp begin buf read 11 = if \ 0x0A is the packet length for Temperature/Humidity sensors
+: rxtemp begin buf read 11 = if \ 0x0A + 1 is the packet length for Temperature/Humidity sensors
 \ buf 1+ c@ .x " packet type" type cr
 \ buf 2+ c@ .x " subtype" type cr
   buf 4 5 2byteint id !
@@ -46,8 +46,8 @@ create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c,
   id @ 63232 = if "bedroom" type cr then
   id @ 48385 = if "kitchen" type cr then
   id @ 59136 = if "bathroom" type cr then
-  buf 6 7 2byteint 10 /mod . 8 emit 46 emit . "deg" type cr \ Example using new word EMIT
-  buf 8 + c@ . "hum" type cr cr then again ;
+  buf 6 7 2byteint 10 /mod . 8 emit 46 emit . "deg" type cr \ Example using word EMIT to
+  buf 8 + c@ . "hum" type cr cr then again ;                 \ format a fixed point decimal
 
 \ Type the first 20 bytes of the receive buffer
 : @type buf read drop 20 0 do buf i + c@ . loop cr ;
@@ -59,7 +59,7 @@ create rxoff 11 c, 17 c, 0 c, 0 c, 0 c, 37 c, 102 c, 223 c, 16 c, 0 c, 0 c, 0 c,
 
 \ Send a reset to rfxtrx, wait 1 sec and send a command to tell rfxtrx which
 \ devices you want to listen to. Then run @type to listen for messages.
-\ Instead of @type you can run rxtemp to get temperature readings if you have 
-\ Temperature/Humidity sensors installed.
-: example rxreset rxsend drop 1 longsleep rxmymode rxsend drop @type ;
+\ Then you can run rxtemp to get temperature readings if you have Temperature/Humidity sensors installed.
+: example rxreset rxsend drop 1 longsleep rxmymode rxsend drop @type cr
+  buf c@ 20 = if "Firmware version " type buf 6 + c@ . cr then ;
 
